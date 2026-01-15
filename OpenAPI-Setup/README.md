@@ -71,3 +71,179 @@ export default defineConfig([
   },
 ])
 ```
+
+
+```
+<!-- Setup for openAPI tanstackQuery heyAPI -->
+OpenAPI SDK Setup with Hey API & TanStack Query
+Install Required Packages
+OpenAPI SDK Generator
+npm install @hey-api/openapi-ts
+
+TanStack Query
+npm install @tanstack/react-query
+
+Axios client support is provided via @hey-api/client-axios plugin.
+
+Create OpenAPI Configuration
+Create a configuration file at the project root.
+File: openapi.config.ts
+
+import { defineConfig } from '@hey-api/openapi-ts';
+import { loadEnv } from 'vite';
+
+const env = loadEnv('development', process.cwd(), '');
+
+export default defineConfig({
+  input: `${env.API_BASE_URL}/api/schema/`,
+  output: './src/sdk',
+  plugins: [
+    {
+      name: '@hey-api/schemas',
+      type: 'json',
+    },
+    {
+      name: '@tanstack/react-query',
+      queryOptions: true,
+      queryKeys: true,
+      mutationOptions: true,
+      infiniteQueryOptions: true,
+      infiniteQueryKeys: true,
+    },
+    '@hey-api/client-axios',
+  ],
+});
+
+
+
+Configuration Options
+Input
+The input option defines the OpenAPI source. Supported values:
+URL (remote OpenAPI schema)
+
+
+Local .json or .yaml file
+
+
+JavaScript object
+
+
+API registry reference
+
+
+Examples
+input: 'https://api.example.com/openapi.json'
+input: './openapi.yaml'
+
+Output
+Defines where the generated SDK will be placed.
+Example
+output: './src/sdk'
+
+Generated structure
+src/
+ └── sdk/
+     ├── client/
+     ├── hooks/
+     ├── schemas/
+     └── index.ts
+
+
+Add NPM Script
+Add the following script to package.json:
+{
+  "scripts": {
+    "openapi-ts": "openapi-ts -f openapi.config.ts"
+  }
+}
+
+
+Generate the SDK
+Run the command:
+npm run openapi-ts
+
+This will:
+Fetch the OpenAPI schema
+
+
+Generate typed API clients
+
+
+Generate TanStack Query hooks
+
+
+Output everything to src/sdk
+
+Configure TanStack Query
+Wrap your application with QueryClientProvider.
+Example: main.tsx
+
+import { createRoot } from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+import App from './App';
+
+const queryClient = new QueryClient();
+
+createRoot(document.getElementById('root')!).render(
+  <QueryClientProvider client={queryClient}>
+    <App />
+  </QueryClientProvider>
+);
+
+
+Using the Generated SDK
+Query Example
+import { useGetUsers } from '@/sdk/hooks';
+
+const Users = () => {
+  const { data, isLoading, error } = useGetUsers();
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error loading users</p>;
+
+  return (
+    <ul>
+      {data?.map(user => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+};
+
+Mutation Example
+import { useCreateUserMutation } from '@/sdk/hooks';
+
+const CreateUser = () => {
+  const createUser = useCreateUserMutation();
+
+  const handleCreate = () => {
+    createUser.mutate({
+      name: 'Jane Doe',
+      email: 'jane@example.com',
+    });
+  };
+
+  return <button onClick={handleCreate}>Create User</button>;
+};
+
+
+ State Management Strategy
+TanStack Query manages all server state:
+
+
+API caching
+
+
+Background refetching
+
+
+Pagination
+
+
+Optimistic updates
+
+
+Redux / Zustand / Context can manage client-side UI state if required
+
+```
